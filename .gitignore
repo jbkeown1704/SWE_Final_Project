@@ -1,0 +1,27 @@
+# Node
+node_modules/
+npm-debug.log
+.env
+
+# Build
+build/
+dist/
+
+# React
+client/node_modules/
+client/build/
+
+# Logs
+logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Optional: OS-specific
+*.swp
