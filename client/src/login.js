@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from './firebase';
-
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
-  const [email, setEmail] = useState('');  // Changed username -> email
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,15 +20,16 @@ function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       setError('');
-      alert('Login successful!');
-      // You could redirect to dashboard or update app state here
+      navigate('/dashboard');
     } catch (error) {
       setError('Invalid email or password');
+      console.error('Login error:', error);
     }
   };
 
   return (
     <div className="login-container">
+      <img src="/Spes.png" alt="SPES Logo" style={{ width: '120px', marginBottom: '20px' }} />
       <h2>SPES Login</h2>
       {error && <p className="error">{error}</p>}
 
@@ -50,7 +52,9 @@ function Login() {
           required
         />
 
-        <button type="submit">Login</button>
+        <button type="submit" disabled={!email || !password}>
+          Login
+        </button>
       </form>
       <a href="/forgot-password" className="forgot-link">Forgot password?</a>
     </div>
@@ -58,4 +62,3 @@ function Login() {
 }
 
 export default Login;
-
