@@ -1,3 +1,5 @@
+
+/* this section below handles all the CSS for the login page, i shuld really try and combine these and keep them together */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -12,7 +14,7 @@ body {
 
 .login-container {
   max-width: 320px;
-  width: 100%; /* so it’s responsive */
+  width: 100%;
   margin: 3rem auto;
   padding: 2rem;
   background: #fff;
@@ -79,3 +81,18 @@ button:hover {
 .forgot-link:hover {
   text-decoration: underline;
 }
+
+
+/* This is for the dashboard */
+
+
+.dashboard-cards {
+  display: flex;
+  justify-content: space-between;  /* spread boxes */
+  max-width: 1000px;                /* container max width */
+  margin: 3rem auto;
+  gap: 1rem;                       /* spacing between boxes */
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
