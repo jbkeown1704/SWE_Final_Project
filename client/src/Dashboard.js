@@ -4,13 +4,13 @@ function Dashboard() {
   return (
     <div className="dashboard-cards">
   <div className="login-container">
-    {/* box 1 */}
+    <h2> This is box will handle the widget for the small gmaps like view</h2>
   </div>
   <div className="login-container">
-    {/* box 2*/}
+    <h2> This is box that handles the navigation</h2>
   </div>
   <div className="login-container">
-    {/* box 3 */}
+    <h2> This will be the box for alerts</h2>
   </div>
 </div>
 
