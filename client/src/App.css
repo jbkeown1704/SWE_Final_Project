@@ -86,13 +86,60 @@ button:hover {
 /* This is for the dashboard */
 
 
-.dashboard-cards {
-  display: flex;
-  justify-content: space-between;  /* spread boxes */
-  max-width: 1000px;                /* container max width */
-  margin: 3rem auto;
-  gap: 1rem;                       /* spacing between boxes */
-  padding: 0 1rem;
+.top-banner {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 1rem 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  border-top: 1px solid #ccc;
+   width: 100vw;
+  position: relative;
+  bottom: 0;
   box-sizing: border-box;
 }
+
+.bottom-banner {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 1rem 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  border-top: 1px solid #ccc;
+   width: 100vw;
+  position: relative;
+  bottom: 0;
+  box-sizing: border-box;
+}
+
+
+.dashboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent; /* Or match body bg if needed */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-cards {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  box-sizing: border-box;
+}
+
+.dashboard-cards .login-container {
+  flex: 1 1 30%;
+  min-width: 280px;
+  max-width: 350px;
+  height: 300px;
+}
+
+
 
