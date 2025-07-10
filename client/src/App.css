@@ -177,4 +177,30 @@ button:hover {
 }
 
 
+.logout-bubble {
+  background-color: #cc0000;
+  border-radius: 20px;
+  padding: 6px 14px;
+  display: inline-block;
+  margin: 1rem auto;
+  color: white;
+  font-weight: bold;
+  font-size: 0.85rem;
+  text-align: center;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+  transition: background-color 0.3s ease;
+}
+
+.logout-bubble:hover {
+  background-color: #ff3333;
+  cursor: pointer;
+}
+
+.logout-bubble button {
+  all: unset;
+  color: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
 

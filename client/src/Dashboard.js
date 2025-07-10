@@ -13,10 +13,10 @@ function Dashboard() {
   }, []);
 
   return (
-<div className="dashboard-wrapper">
-  <div className="top-banner">
-    <div className="time-bubble">{time.toLocaleTimeString()}</div>
-  </div>
+    <div className="dashboard-wrapper">
+      <div className="top-banner">
+        <div className="time-bubble">{time.toLocaleTimeString()}</div>
+      </div>
 
 
       <div className="dashboard-cards">
@@ -42,6 +42,11 @@ function Dashboard() {
       </div>
 
       <div className="bottom-banner">
+        <div className="logout-bubble">
+          <button onClick={() => navigate('/login')}>
+            Logout
+          </button>
+        </div>
         <p>© 2025 SPES Project — All Rights Reserved tee hee</p>
       </div>
     </div>
