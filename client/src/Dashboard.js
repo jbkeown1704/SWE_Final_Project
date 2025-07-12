@@ -55,7 +55,7 @@ function Dashboard() {
 
       <div className="bottom-banner">
         <div className="logout-bubble">
-          <button onClick={() => navigate('/login')}>
+          <button onClick={() => navigate('/')}>
             Logout
           </button>
         </div>
