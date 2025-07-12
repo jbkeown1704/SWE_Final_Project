@@ -5,6 +5,7 @@ import MapView from './Components/MapView';
 
 function Dashboard() {
   const [time, setTime] = useState(new Date());
+  const [timeZone, setTimeZone] = useState('Europe/London');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,7 +16,18 @@ function Dashboard() {
   return (
     <div className="dashboard-wrapper">
       <div className="top-banner">
-        <div className="time-bubble">{time.toLocaleTimeString()}</div>
+        <div className="time-bubble">
+          <p>{time.toLocaleTimeString('en-GB', { timeZone })}</p>
+        </div>
+        <div className="timezone-selector">
+          <select value={timeZone} onChange={(e) => setTimeZone(e.target.value)}>
+            <option value="Europe/London">UK Time</option>
+            <option value="America/New_York">America east coast</option>
+            <option value="Europe/Paris">Europe</option>
+            <option value="Asia/Tokyo">Asia</option>
+            <option value="Australia/Sydney">Australia</option>
+          </select>
+        </div>
       </div>
 
 
