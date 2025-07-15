@@ -29,7 +29,7 @@ function Login() {
 
   return (
     <div className="login-container">
-      <img src="/Spes.png" alt="SPES Logo" style={{ width: '120px', marginBottom: '20px' }} />
+      <img src="/SPES_Heart.png" alt="SPES Logo" style={{ width: '120px', marginBottom: '20px' }} />
       <h2>SPES Login</h2>
       {error && <p className="error">{error}</p>}
 
