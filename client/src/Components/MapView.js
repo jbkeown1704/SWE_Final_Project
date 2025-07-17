@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -11,16 +10,16 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-function MapView() {
+function MapView({ center = [54.5973, -5.9301], zoom = 13 }) {
   return (
-    <MapContainer center={[54.5973, -5.9301]} zoom={13} style={{ height: "100%", width: "100%" }}>
+    <MapContainer center={center} zoom={zoom} style={{ height: "100%", width: "100%" }}>
       <TileLayer
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker position={[54.5973, -5.9301]}>
+      <Marker position={center}>
         <Popup>
-          You are here — this is Belfast!
+          Current focus point.
         </Popup>
       </Marker>
     </MapContainer>
