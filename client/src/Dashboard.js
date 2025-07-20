@@ -50,7 +50,7 @@ function Dashboard() {
         <div className="login-container">
           <h2>This box handles the navigation</h2>
           <div className="dashboard-buttons">
-            <button onClick={() => navigate('/map')}>View Map</button>
+            <button onClick={() => navigate('/map')}>Expand Map</button>
             <button onClick={() => navigate('/report')}>File Report</button>
             <button onClick={() => navigate('/alerts')}>View Alerts</button>
             <button onClick={() => setShowEventInput(!showEventInput)}>
@@ -98,6 +98,11 @@ function Dashboard() {
         {/* Alerts */}
         <div className="login-container">
           <h2>This will be the box for alerts</h2>
+          <ul>
+            <li>⚠️ Flooding expected in Cork.</li>
+            <li>🌪️ Tornado alert near Tokyo.</li>
+            <li>🔥 Wildfire spreading near Lisbon hills.</li>
+          </ul>
         </div>
       </div>
 
