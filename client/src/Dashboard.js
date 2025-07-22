@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MapView from './Components/MapView';
 import { MapContext } from './MapContext';
+import TopBanner from './Components/TopBanner';
+import BottomBanner from './Components/BottomBanner';
 
 function Dashboard() {
   const [time, setTime] = useState(new Date());
@@ -10,7 +12,6 @@ function Dashboard() {
   const [eventCode, setEventCode] = useState('');
   const [showEventInput, setShowEventInput] = useState(false);
   const { mapCenter, setMapCenter, zoomLevel, setZoomLevel } = useContext(MapContext);
-
 
   const disasterEvents = {
     'CORK2025': { center: [51.8985, -8.4756], timeZone: 'Europe/Dublin' },
@@ -25,21 +26,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-wrapper">
-      <div className="top-banner">
-        <div className="time-bubble">
-          <p><strong>Local Time:</strong> {time.toLocaleTimeString('en-GB')}</p>
-          <p><strong>{timeZone.replace('_', ' ')}:</strong> {time.toLocaleTimeString('en-GB', { timeZone })}</p>
-        </div>
-        <div className="timezone-selector">
-          <select value={timeZone} onChange={(e) => setTimeZone(e.target.value)}>
-            <option value="Europe/London">UK Time</option>
-            <option value="America/New_York">America East Coast</option>
-            <option value="Europe/Paris">Europe</option>
-            <option value="Asia/Tokyo">Asia</option>
-            <option value="Australia/Sydney">Australia</option>
-          </select>
-        </div>
-      </div>
+      <TopBanner time={time} timeZone={timeZone} setTimeZone={setTimeZone} />
 
       <div className="dashboard-cards">
         {/* Map Widget */}
@@ -92,8 +79,6 @@ function Dashboard() {
                 </div>
               </div>
             )}
-
-
           </div>
         </div>
 
@@ -108,14 +93,7 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="bottom-banner">
-        <div className="logout-bubble">
-          <button onClick={() => navigate('/')}>
-            Logout
-          </button>
-        </div>
-        <p>© 2025 SPES Project — All Rights Reserved tee hee</p>
-      </div>
+      <BottomBanner />
     </div>
   );
 }

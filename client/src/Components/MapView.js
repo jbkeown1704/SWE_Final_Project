@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContext } from '../MapContext';
@@ -13,17 +13,35 @@ L.Icon.Default.mergeOptions({
 
 function MapView() {
   const { mapCenter, zoomLevel } = useContext(MapContext);
+  const [locationName, setLocationName] = useState('Loading location...');
+
+  useEffect(() => {
+    const [lat, lon] = mapCenter;
+    const fetchLocation = async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en`
+        );
+        const data = await response.json();
+        setLocationName(data.display_name || 'Unknown location');
+      } catch (error) {
+        console.error('Error fetching location name:', error);
+        setLocationName('Error loading location');
+      }
+    };
+
+    fetchLocation();
+  }, [mapCenter]);
 
   return (
     <MapContainer center={mapCenter} zoom={zoomLevel} style={{ height: "100%", width: "100%" }}>
       <TileLayer
-        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
+
       <Marker position={mapCenter}>
-        <Popup>
-          Current focus point.
-        </Popup>
+        <Popup>{locationName}</Popup>
       </Marker>
     </MapContainer>
   );
