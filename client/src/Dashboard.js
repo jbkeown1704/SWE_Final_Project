@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MapView from './Components/MapView';
+import { MapContext } from './MapContext';
 
 function Dashboard() {
   const [time, setTime] = useState(new Date());
@@ -8,8 +9,8 @@ function Dashboard() {
   const navigate = useNavigate();
   const [eventCode, setEventCode] = useState('');
   const [showEventInput, setShowEventInput] = useState(false);
-  const [mapCenter, setMapCenter] = useState([51.5074, -0.1278]); // Default: London
-  const [zoomLevel, setZoomLevel] = useState(10);
+  const { mapCenter, setMapCenter, zoomLevel, setZoomLevel } = useContext(MapContext);
+
 
   const disasterEvents = {
     'CORK2025': { center: [51.8985, -8.4756], timeZone: 'Europe/Dublin' },
@@ -43,7 +44,7 @@ function Dashboard() {
       <div className="dashboard-cards">
         {/* Map Widget */}
         <div className="login-container">
-          <MapView center={mapCenter} zoom={zoomLevel} />
+          <MapView />
         </div>
 
         {/* Navigation */}
@@ -74,6 +75,7 @@ function Dashboard() {
                         if (event) {
                           setMapCenter(event.center);
                           setTimeZone(event.timeZone);
+                          setZoomLevel(13);
                           setEventCode('');
                           setShowEventInput(false);
                         } else {
