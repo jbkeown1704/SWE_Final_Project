@@ -3,6 +3,8 @@ import { MapContainer, TileLayer, Marker, Tooltip, useMapEvents } from 'react-le
 import 'leaflet/dist/leaflet.css';
 import { MapContext } from '../MapContext';
 import L from 'leaflet';
+import { collection, addDoc, getDocs } from "firebase/firestore";
+import { db } from '../firebase';
 
 // Custom red icon
 const redIcon = new L.Icon({
@@ -38,6 +40,7 @@ function MapView() {
   const [activeMarker, setActiveMarker] = useState(null);
   const [reportText, setReportText] = useState('');
 
+  // Load main marker location name
   useEffect(() => {
     const [lat, lon] = mapCenter;
     const fetchLocation = async () => {
@@ -55,21 +58,65 @@ function MapView() {
     fetchLocation();
   }, [mapCenter]);
 
+  // Load markers from Firestore on mount
+  useEffect(() => {
+    const loadMarkers = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "markers"));
+        const loaded = snapshot.docs.map(doc => ({
+          id: doc.id,
+          latlng: {
+            lat: doc.data().lat,
+            lng: doc.data().lng,
+          },
+          report: doc.data().report,
+        }));
+        setMarkers(loaded);
+      } catch (error) {
+        console.error("Failed to load markers:", error);
+      }
+    };
+    loadMarkers();
+  }, []);
+
+  // Add red marker and open modal
   const handleAddMarker = (latlng) => {
-    const newMarker = { id: Date.now(), latlng, report: '' };
+    const newMarker = {
+      id: Date.now(),
+      latlng,
+      report: ''
+    };
     setMarkers((prev) => [...prev, newMarker]);
     setActiveMarker(newMarker);
     setReportText('');
   };
 
+  // Open report modal
   const handleMarkerClick = (marker) => {
     setActiveMarker(marker);
     setReportText(marker.report);
   };
 
-  const handleSaveReport = () => {
+  // Save report and store in Firestore
+  const handleSaveReport = async () => {
+    const updatedMarker = {
+      ...activeMarker,
+      report: reportText
+    };
+
+    try {
+      await addDoc(collection(db, "markers"), {
+        lat: updatedMarker.latlng.lat,
+        lng: updatedMarker.latlng.lng,
+        report: updatedMarker.report,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error("Error saving marker to Firestore:", error);
+    }
+
     setMarkers((prev) =>
-      prev.map((m) => (m.id === activeMarker.id ? { ...m, report: reportText } : m))
+      prev.map((m) => (m.id === activeMarker.id ? updatedMarker : m))
     );
     setActiveMarker(null);
     setReportText('');
@@ -93,7 +140,7 @@ function MapView() {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
-        {/* Main context marker */}
+        {/* Main marker */}
         <Marker position={mapCenter}>
           <Tooltip direction="top" offset={[0, -10]} opacity={1}>
             {locationName}
@@ -102,7 +149,7 @@ function MapView() {
 
         <AddMarker onAdd={handleAddMarker} />
 
-        {/* Red markers with tooltip only */}
+        {/* User-added red markers */}
         {markers.map(marker => (
           <Marker
             key={marker.id}
@@ -117,6 +164,7 @@ function MapView() {
         ))}
       </MapContainer>
 
+      {/* Report modal */}
       {activeMarker && (
         <div
           style={{
