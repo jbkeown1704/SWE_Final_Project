@@ -1,0 +1,19 @@
+[33m401a165[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m English translation on the mini map and the full map
+[33mfbfa2de[m mapcontext built in
+[33m43ccb22[m Full map view temp changes
+[33m2b43560[m Password feature for disasters built in
+[33m53d636d[m Dashboard event plugin fixed
+[33m9fe0fe0[m Fixed some UI issues and updated the login logo
+[33mc49a34a[m Local time scanner added with the feature to see your local time and the currenttime
+[33m85f305b[m Logout button has been fixed!
+[33m8185d53[m Current time time zone selector
+[33m204ef64[m Logout button partially working
+[33m063ca5a[m Basic mapping added and some more dashboard design
+[33mf051b41[m Dashboard trial and error
+[33m648d1d3[m Adding in some smalltext box planning for the layout of the dashboard
+[33m4cd4581[m Dashboard trying to get the React to work
+[33m524ac2f[m Dashboard begins
+[33m6747a75[m Login and Firebase connection added
+[33mae6538f[m Basic package installation process
+[33m3f4c5ce[m Add .gitignore
+[33m70b7564[m Initial commit with README
