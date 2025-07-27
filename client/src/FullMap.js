@@ -24,7 +24,7 @@ function FullMap() {
       </div>
 
       <div className="map-container-box">
-        <MapView center={[54.5973, -5.9301]} zoom={13} />
+        <MapView center={[54.5973, -5.9301]} zoom={13} reportMode={true} />
       </div>
 
       <BottomBanner />
@@ -33,6 +33,7 @@ function FullMap() {
 }
 
 export default FullMap;
+
 
 
 /* my name is james!*/
