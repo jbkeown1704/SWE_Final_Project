@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, useMapEvents } from 'react-le
 import 'leaflet/dist/leaflet.css';
 import { MapContext } from '../MapContext';
 import L from 'leaflet';
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 import { db } from '../firebase';
 
 // Custom red icon
@@ -23,7 +23,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Add red marker on map click
+// Click handler to add marker
 function AddMarker({ onAdd }) {
   useMapEvents({
     click(e) {
@@ -40,7 +40,7 @@ function MapView() {
   const [activeMarker, setActiveMarker] = useState(null);
   const [reportText, setReportText] = useState('');
 
-  // Load main marker location name
+  // Get central location name
   useEffect(() => {
     const [lat, lon] = mapCenter;
     const fetchLocation = async () => {
@@ -58,69 +58,115 @@ function MapView() {
     fetchLocation();
   }, [mapCenter]);
 
-  // Load markers from Firestore on mount
-  useEffect(() => {
-    const loadMarkers = async () => {
-      try {
-        const snapshot = await getDocs(collection(db, "markers"));
-        const loaded = snapshot.docs.map(doc => ({
-          id: doc.id,
-          latlng: {
-            lat: doc.data().lat,
-            lng: doc.data().lng,
-          },
-          report: doc.data().report,
-        }));
-        setMarkers(loaded);
-      } catch (error) {
-        console.error("Failed to load markers:", error);
-      }
-    };
-    loadMarkers();
-  }, []);
-
-  // Add red marker and open modal
-  const handleAddMarker = (latlng) => {
-    const newMarker = {
-      id: Date.now(),
-      latlng,
-      report: ''
-    };
-    setMarkers((prev) => [...prev, newMarker]);
-    setActiveMarker(newMarker);
-    setReportText('');
+  // Load markers from Firestore
+useEffect(() => {
+  const loadMarkers = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "markers"));
+      const loaded = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,               // used as the component's local ID
+        firestoreId: docSnap.id,      // needed for updating/deleting later
+        latlng: {
+          lat: docSnap.data().lat,
+          lng: docSnap.data().lng,
+        },
+        report: docSnap.data().report || '',
+      }));
+      setMarkers(loaded);
+    } catch (error) {
+      console.error("Failed to load markers:", error);
+    }
   };
+  loadMarkers();
+}, []);
 
-  // Open report modal
+
+  // Add a marker in UI and Firestore
+const handleAddMarker = (latlng) => {
+  const newMarker = {
+    id: Date.now().toString(), // temporary unique ID
+    latlng,
+    report: '',
+    firestoreId: null,         // not saved yet
+  };
+  setMarkers((prev) => [...prev, newMarker]);
+  setActiveMarker(newMarker);
+  setReportText('');
+};
+
+
   const handleMarkerClick = (marker) => {
     setActiveMarker(marker);
     setReportText(marker.report);
   };
 
-  // Save report and store in Firestore
-  const handleSaveReport = async () => {
-    const updatedMarker = {
-      ...activeMarker,
-      report: reportText
-    };
+  // Save report to Firestore
+const handleSaveReport = async () => {
+  if (!activeMarker) return;
 
-    try {
-      await addDoc(collection(db, "markers"), {
-        lat: updatedMarker.latlng.lat,
-        lng: updatedMarker.latlng.lng,
-        report: updatedMarker.report,
+  try {
+    if (!activeMarker.firestoreId) {
+      // New marker → add to Firestore
+      const docRef = await addDoc(collection(db, "markers"), {
+        lat: activeMarker.latlng.lat,
+        lng: activeMarker.latlng.lng,
+        report: reportText,
         timestamp: new Date()
       });
-    } catch (error) {
-      console.error("Error saving marker to Firestore:", error);
+
+      const firestoreId = docRef.id;
+
+      setMarkers((prev) =>
+        prev.map((m) =>
+          m.id === activeMarker.id ? { ...m, report: reportText, firestoreId } : m
+        )
+      );
+
+      // Ensure activeMarker has the Firestore ID so delete/edit works
+      setActiveMarker((prev) =>
+        prev ? { ...prev, firestoreId } : null
+      );
+
+    } else {
+      // Existing marker → update Firestore
+      await updateDoc(doc(db, "markers", activeMarker.firestoreId), {
+        report: reportText
+      });
+
+      setMarkers((prev) =>
+        prev.map((m) =>
+          m.id === activeMarker.id ? { ...m, report: reportText } : m
+        )
+      );
     }
 
-    setMarkers((prev) =>
-      prev.map((m) => (m.id === activeMarker.id ? updatedMarker : m))
-    );
     setActiveMarker(null);
     setReportText('');
-  };
+  } catch (error) {
+    console.error("Error saving marker:", error);
+  }
+};
+
+
+
+
+  // Delete marker from Firestore + UI
+const handleDeleteMarker = async () => {
+  if (!activeMarker) return;
+
+  try {
+    if (activeMarker.firestoreId) {
+      await deleteDoc(doc(db, "markers", activeMarker.firestoreId));
+    }
+
+    setMarkers((prev) => prev.filter((m) => m.id !== activeMarker.id));
+    setActiveMarker(null);
+    setReportText('');
+  } catch (error) {
+    console.error("Error deleting marker:", error);
+  }
+};
+
 
   const handleCloseModal = () => {
     setActiveMarker(null);
@@ -140,7 +186,6 @@ function MapView() {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
-        {/* Main marker */}
         <Marker position={mapCenter}>
           <Tooltip direction="top" offset={[0, -10]} opacity={1}>
             {locationName}
@@ -149,7 +194,6 @@ function MapView() {
 
         <AddMarker onAdd={handleAddMarker} />
 
-        {/* User-added red markers */}
         {markers.map(marker => (
           <Marker
             key={marker.id}
@@ -164,31 +208,20 @@ function MapView() {
         ))}
       </MapContainer>
 
-      {/* Report modal */}
       {activeMarker && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.4)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: 'white',
-              padding: 20,
-              borderRadius: 8,
-              width: '90%',
-              maxWidth: 400,
-            }}
-          >
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.4)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            background: 'white',
+            padding: 20,
+            borderRadius: 8,
+            width: '90%',
+            maxWidth: 400,
+          }}>
             <h3>Write report for marker</h3>
             <textarea
               rows={6}
@@ -197,30 +230,10 @@ function MapView() {
               onChange={(e) => setReportText(e.target.value)}
               placeholder="Enter report details here..."
             />
-            <div
-              style={{
-                marginTop: 10,
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: '10px',
-              }}
-            >
-              <button onClick={handleSaveReport} style={{ padding: '8px 16px', flex: 1 }}>
-                Save
-              </button>
-              <button onClick={handleCloseModal} style={{ padding: '8px 16px', flex: 1 }}>
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setMarkers((prev) => prev.filter((m) => m.id !== activeMarker.id));
-                  setActiveMarker(null);
-                  setReportText('');
-                }}
-                style={{ padding: '8px 16px', flex: 1, backgroundColor: '#cc0000', color: 'white' }}
-              >
-                Delete
-              </button>
+            <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+              <button onClick={handleSaveReport} style={{ padding: '8px 16px', flex: 1 }}>Save</button>
+              <button onClick={handleCloseModal} style={{ padding: '8px 16px', flex: 1 }}>Cancel</button>
+              <button onClick={handleDeleteMarker} style={{ padding: '8px 16px', flex: 1, backgroundColor: '#cc0000', color: 'white' }}>Delete</button>
             </div>
           </div>
         </div>
