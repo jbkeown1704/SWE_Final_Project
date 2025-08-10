@@ -4,6 +4,7 @@ import Login from './login';
 import Dashboard from './Dashboard';
 import FullMap from './FullMap';
 import Signup from './Signup';
+import ForgotPassword from './ForgotPassword';
 import './App.css';
 import { MapProvider } from './MapContext';
 
@@ -17,6 +18,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/map" element={<FullMap />} />
             <Route path="/Signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
           </Routes>
         </Router>
       </div>
