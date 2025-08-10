@@ -56,7 +56,18 @@ function Login() {
           Login
         </button>
       </form>
+
       <a href="/forgot-password" className="forgot-link">Forgot password?</a>
+
+      <p style={{ marginTop: '15px' }}>
+        Don’t have an account?{' '}
+        <span
+          style={{ color: 'blue', cursor: 'pointer', textDecoration: 'underline' }}
+          onClick={() => navigate('/signup')}
+        >
+          Create one here
+        </span>
+      </p>
     </div>
   );
 }

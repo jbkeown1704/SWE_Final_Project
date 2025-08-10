@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './login';
 import Dashboard from './Dashboard';
 import FullMap from './FullMap';
+import Signup from './Signup';
 import './App.css';
 import { MapProvider } from './MapContext';
 
@@ -14,7 +15,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/map" element={<FullMap />} /> {/* Full map route */}
+            <Route path="/map" element={<FullMap />} />
+            <Route path="/Signup" element={<Signup />} />
           </Routes>
         </Router>
       </div>
