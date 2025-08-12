@@ -34,7 +34,7 @@ function AddMarker({ onAdd }) {
 }
 
 function MapView() {
-  const { mapCenter, zoomLevel } = useContext(MapContext);
+  const { mapCenter, zoomLevel, eventPassword } = useContext(MapContext); // now reading event password
   const [locationName, setLocationName] = useState('Loading location...');
   const [markers, setMarkers] = useState([]);
   const [activeMarker, setActiveMarker] = useState(null);
@@ -58,42 +58,53 @@ function MapView() {
     fetchLocation();
   }, [mapCenter]);
 
-  // Load markers from Firestore
-useEffect(() => {
-  const loadMarkers = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "markers"));
-      const loaded = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,               // used as the component's local ID
-        firestoreId: docSnap.id,      // needed for updating/deleting later
-        latlng: {
-          lat: docSnap.data().lat,
-          lng: docSnap.data().lng,
-        },
-        report: docSnap.data().report || '',
-      }));
-      setMarkers(loaded);
-    } catch (error) {
-      console.error("Failed to load markers:", error);
+  // Load markers for current event password
+  useEffect(() => {
+    if (!eventPassword) {
+      setMarkers([]);
+      return;
     }
+    const loadMarkers = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "markers"));
+        const loaded = snapshot.docs
+          .map(docSnap => ({
+            id: docSnap.id,
+            firestoreId: docSnap.id,
+            latlng: {
+              lat: docSnap.data().lat,
+              lng: docSnap.data().lng,
+            },
+            report: docSnap.data().report || '',
+            eventPassword: docSnap.data().eventPassword || null
+          }))
+          .filter(marker => marker.eventPassword === eventPassword);
+
+        setMarkers(loaded);
+      } catch (error) {
+        console.error("Failed to load markers:", error);
+      }
+    };
+    loadMarkers();
+  }, [eventPassword]);
+
+  // Add a marker in UI
+  const handleAddMarker = (latlng) => {
+    if (!eventPassword) {
+      alert("You must enter the correct event password before adding markers.");
+      return;
+    }
+    const newMarker = {
+      id: Date.now().toString(),
+      latlng,
+      report: '',
+      firestoreId: null,
+      eventPassword
+    };
+    setMarkers((prev) => [...prev, newMarker]);
+    setActiveMarker(newMarker);
+    setReportText('');
   };
-  loadMarkers();
-}, []);
-
-
-  // Add a marker in UI and Firestore
-const handleAddMarker = (latlng) => {
-  const newMarker = {
-    id: Date.now().toString(), // temporary unique ID
-    latlng,
-    report: '',
-    firestoreId: null,         // not saved yet
-  };
-  setMarkers((prev) => [...prev, newMarker]);
-  setActiveMarker(newMarker);
-  setReportText('');
-};
-
 
   const handleMarkerClick = (marker) => {
     setActiveMarker(marker);
@@ -101,72 +112,59 @@ const handleAddMarker = (latlng) => {
   };
 
   // Save report to Firestore
-const handleSaveReport = async () => {
-  if (!activeMarker) return;
+  const handleSaveReport = async () => {
+    if (!activeMarker || !eventPassword) return;
 
-  try {
-    if (!activeMarker.firestoreId) {
-      // New marker → add to Firestore
-      const docRef = await addDoc(collection(db, "markers"), {
-        lat: activeMarker.latlng.lat,
-        lng: activeMarker.latlng.lng,
-        report: reportText,
-        timestamp: new Date()
-      });
+    try {
+      if (!activeMarker.firestoreId) {
+        const docRef = await addDoc(collection(db, "markers"), {
+          lat: activeMarker.latlng.lat,
+          lng: activeMarker.latlng.lng,
+          report: reportText,
+          eventPassword, // tie to event
+          timestamp: new Date()
+        });
 
-      const firestoreId = docRef.id;
-
-      setMarkers((prev) =>
-        prev.map((m) =>
-          m.id === activeMarker.id ? { ...m, report: reportText, firestoreId } : m
-        )
-      );
-
-      // Ensure activeMarker has the Firestore ID so delete/edit works
-      setActiveMarker((prev) =>
-        prev ? { ...prev, firestoreId } : null
-      );
-
-    } else {
-      // Existing marker → update Firestore
-      await updateDoc(doc(db, "markers", activeMarker.firestoreId), {
-        report: reportText
-      });
-
-      setMarkers((prev) =>
-        prev.map((m) =>
-          m.id === activeMarker.id ? { ...m, report: reportText } : m
-        )
-      );
+        const firestoreId = docRef.id;
+        setMarkers((prev) =>
+          prev.map((m) =>
+            m.id === activeMarker.id ? { ...m, report: reportText, firestoreId } : m
+          )
+        );
+        setActiveMarker((prev) =>
+          prev ? { ...prev, firestoreId } : null
+        );
+      } else {
+        await updateDoc(doc(db, "markers", activeMarker.firestoreId), {
+          report: reportText
+        });
+        setMarkers((prev) =>
+          prev.map((m) =>
+            m.id === activeMarker.id ? { ...m, report: reportText } : m
+          )
+        );
+      }
+      setActiveMarker(null);
+      setReportText('');
+    } catch (error) {
+      console.error("Error saving marker:", error);
     }
+  };
 
-    setActiveMarker(null);
-    setReportText('');
-  } catch (error) {
-    console.error("Error saving marker:", error);
-  }
-};
-
-
-
-
-  // Delete marker from Firestore + UI
-const handleDeleteMarker = async () => {
-  if (!activeMarker) return;
-
-  try {
-    if (activeMarker.firestoreId) {
-      await deleteDoc(doc(db, "markers", activeMarker.firestoreId));
+  // Delete marker
+  const handleDeleteMarker = async () => {
+    if (!activeMarker) return;
+    try {
+      if (activeMarker.firestoreId) {
+        await deleteDoc(doc(db, "markers", activeMarker.firestoreId));
+      }
+      setMarkers((prev) => prev.filter((m) => m.id !== activeMarker.id));
+      setActiveMarker(null);
+      setReportText('');
+    } catch (error) {
+      console.error("Error deleting marker:", error);
     }
-
-    setMarkers((prev) => prev.filter((m) => m.id !== activeMarker.id));
-    setActiveMarker(null);
-    setReportText('');
-  } catch (error) {
-    console.error("Error deleting marker:", error);
-  }
-};
-
+  };
 
   const handleCloseModal = () => {
     setActiveMarker(null);

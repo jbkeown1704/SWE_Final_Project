@@ -11,7 +11,7 @@ function Dashboard() {
   const [time, setTime] = useState(new Date());
   const [timeZone, setTimeZone] = useState('Europe/London');
   const navigate = useNavigate();
-  
+
   const [eventCode, setEventCode] = useState('');
   const [showEventInput, setShowEventInput] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -21,7 +21,9 @@ function Dashboard() {
   const [longitude, setLongitude] = useState('');
   const [newTimeZone, setNewTimeZone] = useState('Europe/London'); // default
 
-  const { setMapCenter, setZoomLevel } = useContext(MapContext);
+  // We are using setEventPassword from MapContext to set the active event code.
+  // The 'setCurrentEventCode' function was not defined, causing the error.
+  const { setMapCenter, setZoomLevel, setEventPassword } = useContext(MapContext);
 
   const timeZones = [
     'Europe/London',
@@ -42,28 +44,45 @@ function Dashboard() {
   }, []);
 
   const handleJoinEvent = async () => {
-    if (!eventCode) return alert("Please enter an event code.");
+    if (!eventCode.trim()) return alert("Please enter an event code.");
+
     try {
       const q = query(collection(db, 'events'), where('eventCode', '==', eventCode.toUpperCase()));
       const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const event = querySnapshot.docs[0].data();
-        setMapCenter([event.latitude, event.longitude]);
-        setTimeZone(event.timeZone || 'Europe/London'); // fallback if missing
-        setZoomLevel(13);
-        setEventCode('');
-        setShowEventInput(false);
-      } else {
-        alert("Invalid code. Please try again.");
+
+      if (querySnapshot.empty) {
+        return alert("Invalid code. Please try again.");
       }
+
+      const event = querySnapshot.docs[0].data();
+      console.log("Event found in Firestore:", event);
+
+      const lat = parseFloat(event.latitude);
+      const lng = parseFloat(event.longitude);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        return alert("Event data missing valid coordinates.");
+      }
+
+      setMapCenter([lat, lng]);
+      setTimeZone(event.timeZone || 'Europe/London');
+      setZoomLevel(13);
+
+      // FIX: Replaced the undefined 'setCurrentEventCode' with the
+      // 'setEventPassword' function from MapContext.
+      setEventPassword(eventCode.toUpperCase());
+
+      setEventCode('');
+      setShowEventInput(false);
     } catch (err) {
-      console.error(err);
-      alert("Error finding event.");
+      console.error("Join event error:", err);
+      alert(`Error finding event: ${err.message}`);
     }
   };
 
+
   const handleCreateEvent = async () => {
-    if (!newEventCode) {
+    if (!newEventCode.trim()) {
       return alert("Please enter an event code.");
     }
 
@@ -84,6 +103,7 @@ function Dashboard() {
       setMapCenter([finalLat, finalLng]);
       setTimeZone(finalTimeZone);
       setZoomLevel(13);
+      setEventPassword(newEventCode.toUpperCase()); // store new event in context
 
       alert('Event created and centered on map!');
       setNewEventCode('');
@@ -116,6 +136,7 @@ function Dashboard() {
             <button onClick={() => navigate('/alerts')}>View Alerts</button>
             <button onClick={() => setShowEventInput(true)}>Join Disaster Event</button>
             <button onClick={() => setShowCreateModal(true)}>Create Event Password</button>
+            <button onClick={() => setEventPassword(null)}>Leave Event</button>
           </div>
         </div>
 
