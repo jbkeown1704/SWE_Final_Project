@@ -152,7 +152,6 @@ button:hover {
   flex: 1 1 30%;
   min-width: 280px;
   max-width: 350px;
-  height: 400px;
 }
 
 .dashboard-buttons {
