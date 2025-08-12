@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 import MapView from './Components/MapView';
 import { MapContext } from './MapContext';
@@ -21,7 +21,9 @@ function Dashboard() {
   const [longitude, setLongitude] = useState('');
   const [newTimeZone, setNewTimeZone] = useState('Europe/London'); // default
 
-  const { setMapCenter, setZoomLevel, setEventPassword } = useContext(MapContext);
+  const { eventPassword, setMapCenter, setZoomLevel, setEventPassword } = useContext(MapContext);
+
+  const [reports, setReports] = useState([]);
 
   const timeZones = [
     'Europe/London',
@@ -32,7 +34,6 @@ function Dashboard() {
     'Australia/Sydney'
   ];
 
-  // Belfast coordinates (fallback if none provided)
   const DEFAULT_LAT = 54.5973; // Latitude for Belfast
   const DEFAULT_LNG = -5.9301; // Longitude for Belfast
 
@@ -40,6 +41,33 @@ function Dashboard() {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!eventPassword) {
+      setReports([]);
+      return;
+    }
+
+    // FIX: Changed collection name from 'reports' to 'markers'
+    const reportsQuery = query(
+      collection(db, 'markers'),
+      where('eventPassword', '==', eventPassword)
+    );
+
+    const unsubscribe = onSnapshot(reportsQuery, (querySnapshot) => {
+      const fetchedReports = [];
+      querySnapshot.forEach((doc) => {
+        fetchedReports.push({ id: doc.id, ...doc.data() });
+      });
+      console.log("Fetched reports:", fetchedReports);
+      setReports(fetchedReports);
+    }, (error) => {
+      console.error("Error fetching reports:", error);
+    });
+
+    return () => unsubscribe();
+  }, [eventPassword]);
+
 
   const handleJoinEvent = async () => {
     if (!eventCode.trim()) return alert("Please enter an event code.");
@@ -66,8 +94,6 @@ function Dashboard() {
       setTimeZone(event.timeZone || 'Europe/London');
       setZoomLevel(13);
 
-      // FIX: Replaced the undefined 'setCurrentEventCode' with the
-      // 'setEventPassword' function from MapContext.
       setEventPassword(eventCode.toUpperCase());
 
       setEventCode('');
@@ -84,7 +110,6 @@ function Dashboard() {
       return alert("Please enter an event code.");
     }
 
-    // Fallbacks
     const finalLat = latitude ? parseFloat(latitude) : DEFAULT_LAT;
     const finalLng = longitude ? parseFloat(longitude) : DEFAULT_LNG;
     const finalTimeZone = timeZones.includes(newTimeZone) ? newTimeZone : 'Europe/London';
@@ -101,7 +126,7 @@ function Dashboard() {
       setMapCenter([finalLat, finalLng]);
       setTimeZone(finalTimeZone);
       setZoomLevel(13);
-      setEventPassword(newEventCode.toUpperCase()); // store new event in context
+      setEventPassword(newEventCode.toUpperCase());
 
       alert('Event created and centered on map!');
       setNewEventCode('');
@@ -120,12 +145,10 @@ function Dashboard() {
       <TopBanner time={time} timeZone={timeZone} setTimeZone={setTimeZone} />
 
       <div className="dashboard-cards">
-        {/* Map Widget */}
         <div className="login-container">
           <MapView />
         </div>
 
-        {/* Navigation */}
         <div className="login-container">
           <h2>Navigation</h2>
           <div className="dashboard-buttons">
@@ -138,18 +161,24 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Alerts */}
         <div className="login-container">
           <h2>Alerts</h2>
           <ul>
-            <li>⚠️ Flooding expected in Cork.</li>
-            <li>🌪️ Tornado alert near Tokyo.</li>
-            <li>🔥 Wildfire spreading near Lisbon hills.</li>
+            {reports.length > 0 ? (
+              reports.map((report) => (
+                <li key={report.id}>
+                  {/* FIX: Changed field name from 'reportText' to 'report' */}
+                  {report.report ? report.report.substring(0, 50) : "No text provided"}
+                  {report.report && report.report.length > 50 ? '...' : ''}
+                </li>
+              ))
+            ) : (
+              <li>No reports available.</li>
+            )}
           </ul>
         </div>
       </div>
 
-      {/* Join Event Modal */}
       {showEventInput && (
         <div className="modal-overlay">
           <div className="modal-box">
@@ -168,7 +197,6 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Create Event Modal */}
       {showCreateModal && (
         <div className="modal-overlay">
           <div className="modal-box">
