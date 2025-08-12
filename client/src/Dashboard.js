@@ -48,7 +48,6 @@ function Dashboard() {
       return;
     }
 
-    // FIX: Changed collection name from 'reports' to 'markers'
     const reportsQuery = query(
       collection(db, 'markers'),
       where('eventPassword', '==', eventPassword)
@@ -163,17 +162,18 @@ function Dashboard() {
 
         <div className="login-container">
           <h2>Alerts</h2>
-          <ul>
+          <ul className="reports-list">
             {reports.length > 0 ? (
               reports.map((report) => (
-                <li key={report.id}>
-                  {/* FIX: Changed field name from 'reportText' to 'report' */}
+                <li key={report.id} className="report-item">
+                  {/* FIX: Displays the emoji with a little more spacing and emphasis */}
+                  {report.reportEmoji && <span style={{ marginRight: '5px' }}>{report.reportEmoji}</span>}
                   {report.report ? report.report.substring(0, 50) : "No text provided"}
                   {report.report && report.report.length > 50 ? '...' : ''}
                 </li>
               ))
             ) : (
-              <li>No reports available.</li>
+              <li className="report-item">No reports available.</li>
             )}
           </ul>
         </div>

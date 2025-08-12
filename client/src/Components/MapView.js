@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, useMapEvents } from 'react-le
 import 'leaflet/dist/leaflet.css';
 import { MapContext } from '../MapContext';
 import L from 'leaflet';
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore";
 import { db } from '../firebase';
 
 // Custom red icon
@@ -34,11 +34,15 @@ function AddMarker({ onAdd }) {
 }
 
 function MapView() {
-  const { mapCenter, zoomLevel, eventPassword } = useContext(MapContext); // now reading event password
+  const { mapCenter, zoomLevel, eventPassword } = useContext(MapContext);
   const [locationName, setLocationName] = useState('Loading location...');
   const [markers, setMarkers] = useState([]);
   const [activeMarker, setActiveMarker] = useState(null);
   const [reportText, setReportText] = useState('');
+  // NEW: State to hold the selected emoji
+  const [selectedEmoji, setSelectedEmoji] = useState('🚨');
+  // Emojis for the selector
+  const emojis = ['🚨', '🔥', '⚠️', '💧', '🌪️', '🗺️', '🧑‍🚒'];
 
   // Get central location name
   useEffect(() => {
@@ -66,7 +70,8 @@ function MapView() {
     }
     const loadMarkers = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "markers"));
+        const q = query(collection(db, "markers"), where("eventPassword", "==", eventPassword));
+        const snapshot = await getDocs(q);
         const loaded = snapshot.docs
           .map(docSnap => ({
             id: docSnap.id,
@@ -76,9 +81,10 @@ function MapView() {
               lng: docSnap.data().lng,
             },
             report: docSnap.data().report || '',
+            // NEW: Read the emoji from the database
+            reportEmoji: docSnap.data().reportEmoji || '',
             eventPassword: docSnap.data().eventPassword || null
-          }))
-          .filter(marker => marker.eventPassword === eventPassword);
+          }));
 
         setMarkers(loaded);
       } catch (error) {
@@ -99,16 +105,20 @@ function MapView() {
       latlng,
       report: '',
       firestoreId: null,
+      reportEmoji: '🚨', // NEW: Set a default emoji for new markers
       eventPassword
     };
     setMarkers((prev) => [...prev, newMarker]);
     setActiveMarker(newMarker);
     setReportText('');
+    setSelectedEmoji('🚨'); // NEW: Reset emoji state for new marker
   };
 
   const handleMarkerClick = (marker) => {
     setActiveMarker(marker);
     setReportText(marker.report);
+    // NEW: Set the selected emoji to the one from the clicked marker
+    setSelectedEmoji(marker.reportEmoji || '🚨');
   };
 
   // Save report to Firestore
@@ -121,6 +131,7 @@ function MapView() {
           lat: activeMarker.latlng.lat,
           lng: activeMarker.latlng.lng,
           report: reportText,
+          reportEmoji: selectedEmoji, // NEW: Save the selected emoji
           eventPassword, // tie to event
           timestamp: new Date()
         });
@@ -128,7 +139,7 @@ function MapView() {
         const firestoreId = docRef.id;
         setMarkers((prev) =>
           prev.map((m) =>
-            m.id === activeMarker.id ? { ...m, report: reportText, firestoreId } : m
+            m.id === activeMarker.id ? { ...m, report: reportText, reportEmoji: selectedEmoji, firestoreId } : m
           )
         );
         setActiveMarker((prev) =>
@@ -136,16 +147,18 @@ function MapView() {
         );
       } else {
         await updateDoc(doc(db, "markers", activeMarker.firestoreId), {
-          report: reportText
+          report: reportText,
+          reportEmoji: selectedEmoji, // NEW: Update the emoji too
         });
         setMarkers((prev) =>
           prev.map((m) =>
-            m.id === activeMarker.id ? { ...m, report: reportText } : m
+            m.id === activeMarker.id ? { ...m, report: reportText, reportEmoji: selectedEmoji } : m
           )
         );
       }
       setActiveMarker(null);
       setReportText('');
+      setSelectedEmoji('🚨'); // NEW: Reset emoji
     } catch (error) {
       console.error("Error saving marker:", error);
     }
@@ -161,6 +174,7 @@ function MapView() {
       setMarkers((prev) => prev.filter((m) => m.id !== activeMarker.id));
       setActiveMarker(null);
       setReportText('');
+      setSelectedEmoji('🚨'); // NEW: Reset emoji
     } catch (error) {
       console.error("Error deleting marker:", error);
     }
@@ -169,11 +183,14 @@ function MapView() {
   const handleCloseModal = () => {
     setActiveMarker(null);
     setReportText('');
+    setSelectedEmoji('🚨'); // NEW: Reset emoji
   };
 
-  const popupContent = (report) => {
-    if (!report) return 'New one';
-    return report.length > 50 ? report.slice(0, 50) + '...' : report;
+  // NEW: Function to display emoji and report text in the tooltip
+  const popupContent = (report, emoji) => {
+    const text = report || 'New one';
+    const truncatedText = text.length > 50 ? text.slice(0, 50) + '...' : text;
+    return emoji ? `${emoji} ${truncatedText}` : truncatedText;
   };
 
   return (
@@ -200,7 +217,8 @@ function MapView() {
             eventHandlers={{ click: () => handleMarkerClick(marker) }}
           >
             <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-              {popupContent(marker.report)}
+              {/* NEW: Pass both report text and emoji to the popup content */}
+              {popupContent(marker.report, marker.reportEmoji)}
             </Tooltip>
           </Marker>
         ))}
@@ -221,6 +239,26 @@ function MapView() {
             maxWidth: 400,
           }}>
             <h3>Write report for marker</h3>
+            {/* NEW: Emoji selector added here */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '10px' }}>
+              {emojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => setSelectedEmoji(emoji)}
+                  style={{
+                    fontSize: '24px',
+                    backgroundColor: selectedEmoji === emoji ? '#e6f7ff' : '#f0f0f0',
+                    border: '1px solid #ccc',
+                    borderRadius: '5px',
+                    padding: '5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            
             <textarea
               rows={6}
               style={{ width: '100%', boxSizing: 'border-box' }}
