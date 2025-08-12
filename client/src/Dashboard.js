@@ -21,8 +21,6 @@ function Dashboard() {
   const [longitude, setLongitude] = useState('');
   const [newTimeZone, setNewTimeZone] = useState('Europe/London'); // default
 
-  // We are using setEventPassword from MapContext to set the active event code.
-  // The 'setCurrentEventCode' function was not defined, causing the error.
   const { setMapCenter, setZoomLevel, setEventPassword } = useContext(MapContext);
 
   const timeZones = [
@@ -34,9 +32,9 @@ function Dashboard() {
     'Australia/Sydney'
   ];
 
-  // Cork coordinates (fallback if none provided)
-  const DEFAULT_LAT = 51.8985;
-  const DEFAULT_LNG = -8.4756;
+  // Belfast coordinates (fallback if none provided)
+  const DEFAULT_LAT = 54.5973; // Latitude for Belfast
+  const DEFAULT_LNG = -5.9301; // Longitude for Belfast
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
