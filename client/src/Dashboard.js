@@ -6,6 +6,8 @@ import MapView from './Components/MapView';
 import { MapContext } from './MapContext';
 import TopBanner from './Components/TopBanner';
 import BottomBanner from './Components/BottomBanner';
+import { useTranslation } from "react-i18next";
+
 
 function Dashboard() {
   const [time, setTime] = useState(new Date());
@@ -25,6 +27,9 @@ function Dashboard() {
 
   const [reports, setReports] = useState([]);
 
+  const { t } = useTranslation();
+
+
   const timeZones = [
     'Europe/London',
     'Europe/Dublin',
@@ -36,6 +41,7 @@ function Dashboard() {
 
   const DEFAULT_LAT = 54.5973; // Latitude for Belfast
   const DEFAULT_LNG = -5.9301; // Longitude for Belfast
+
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
@@ -149,31 +155,28 @@ function Dashboard() {
         </div>
 
         <div className="login-container">
-          <h2>Navigation</h2>
+          <h2>{t("Navigation")}</h2>
           <div className="dashboard-buttons">
-            <button onClick={() => navigate('/map')}>Expand Map</button>
-            <button onClick={() => navigate('/report')}>File Report</button>
-            <button onClick={() => navigate('/alerts')}>View Alerts</button>
-            <button onClick={() => setShowEventInput(true)}>Join Disaster Event</button>
-            <button onClick={() => setShowCreateModal(true)}>Create Event Password</button>
-            <button onClick={() => setEventPassword(null)}>Leave Event</button>
+            <button onClick={() => navigate('/map')}>{t("Expand Map")}</button>
+            <button onClick={() => setShowEventInput(true)}>{t("Join Disaster Event")}</button>
+            <button onClick={() => setShowCreateModal(true)}>{t("Create Event Password")}</button>
+            <button onClick={() => setEventPassword(null)}>{t("Leave Event")}</button>
           </div>
         </div>
 
         <div className="login-container">
-          <h2>Alerts</h2>
+          <h2>{t("Alerts")}</h2>
           <ul className="reports-list">
             {reports.length > 0 ? (
               reports.map((report) => (
                 <li key={report.id} className="report-item">
-                  {/* FIX: Displays the emoji with a little more spacing and emphasis */}
                   {report.reportEmoji && <span style={{ marginRight: '5px' }}>{report.reportEmoji}</span>}
-                  {report.report ? report.report.substring(0, 50) : "No text provided"}
+                  {report.report ? report.report.substring(0, 50) : t("No text provided")}
                   {report.report && report.report.length > 50 ? '...' : ''}
                 </li>
               ))
             ) : (
-              <li className="report-item">No reports available.</li>
+              <li className="report-item">{t("No reports available.")}</li>
             )}
           </ul>
         </div>
@@ -182,16 +185,16 @@ function Dashboard() {
       {showEventInput && (
         <div className="modal-overlay">
           <div className="modal-box">
-            <h3>Join Disaster Event</h3>
+            <h3>{t("Join Disaster Event")}</h3>
             <input
               type="text"
-              placeholder="Enter event code"
+              placeholder={t("Enter event code")}
               value={eventCode}
               onChange={(e) => setEventCode(e.target.value)}
             />
             <div className="modal-buttons">
-              <button onClick={handleJoinEvent}>Join</button>
-              <button onClick={() => setShowEventInput(false)}>Cancel</button>
+              <button onClick={handleJoinEvent}>{t("Join")}</button>
+              <button onClick={() => setShowEventInput(false)}>{t("Cancel")}</button>
             </div>
           </div>
         </div>
