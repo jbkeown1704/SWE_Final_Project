@@ -6,6 +6,137 @@ import L from 'leaflet';
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore";
 import { db } from '../firebase';
 
+// Define the pulsing keyframe animation and modal styles in one CSS block
+const styles = `
+.report-modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  padding: 1rem;
+}
+
+.report-modal {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.emoji-selector {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.emoji-selector-button {
+  background-color: #f0f0f0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.emoji-selector-button:hover {
+  transform: translateY(-2px);
+  background-color: #e6e6e6;
+}
+
+.emoji-selector-button.selected {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.report-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.report-textarea:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.modal-buttons {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.modal-button {
+  padding: 10px 20px;
+  flex: 1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease-in-out;
+  border: none;
+}
+
+.modal-button.save {
+  background-color: #1890ff;
+  color: white;
+}
+
+.modal-button.save:hover {
+  background-color: #40a9ff;
+  transform: translateY(-1px);
+}
+
+.modal-button.cancel {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.modal-button.cancel:hover {
+  background-color: #e6e6e6;
+}
+
+.modal-button.delete {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+.modal-button.delete:hover {
+  background-color: #ff7875;
+  transform: translateY(-1px);
+}
+`;
+
 // Define the pulsing keyframe animation directly in CSS
 const markerPulseStyle = `
   @keyframes pulse {
@@ -61,7 +192,6 @@ function MapView() {
   const [reportText, setReportText] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('🚨');
   const emojis = ['🚨', '🔥', '⚠️', '💧', '🌪️', '🗺️', '🧑‍🚒'];
-  // NEW: State for the toast message
   const [toastMessage, setToastMessage] = useState('');
 
   // Get central location name
@@ -116,10 +246,9 @@ function MapView() {
   // Add a marker in UI
   const handleAddMarker = (latlng) => {
     if (!eventPassword) {
-      // UPDATED: Replace alert with a toast message
       setToastMessage("Please enter the correct event password to add markers.");
       setTimeout(() => {
-        setToastMessage(""); // Hide toast after 3 seconds
+        setToastMessage("");
       }, 3000);
       return;
     }
@@ -130,7 +259,7 @@ function MapView() {
       firestoreId: null,
       reportEmoji: '🚨',
       eventPassword,
-      isNew: true // NEW: Add a flag to identify new markers for animation
+      isNew: true
     };
     setMarkers((prev) => [...prev, newMarker]);
     setActiveMarker(newMarker);
@@ -138,14 +267,13 @@ function MapView() {
     setSelectedEmoji('🚨');
   };
 
-  // NEW: useEffect to handle marker animation state
   useEffect(() => {
     if (markers.length > 0 && markers[markers.length - 1].isNew) {
       const timer = setTimeout(() => {
         setMarkers(prevMarkers =>
           prevMarkers.map(m => m.isNew ? { ...m, isNew: false } : m)
         );
-      }, 1500); // Animation duration
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [markers.length]);
@@ -229,6 +357,7 @@ function MapView() {
   return (
     <>
       <style>{markerPulseStyle}</style>
+      <style>{styles}</style>
       {toastMessage && (
         <div style={{
           position: 'fixed',
@@ -266,7 +395,7 @@ function MapView() {
             position={marker.latlng}
             icon={redIcon}
             eventHandlers={{ click: () => handleMarkerClick(marker) }}
-            className={marker.isNew ? 'pulse-marker' : ''} // NEW: Conditionally apply animation class
+            className={marker.isNew ? 'pulse-marker' : ''}
           >
             <Tooltip direction="top" offset={[0, -10]} opacity={1}>
               {popupContent(marker.report, marker.reportEmoji)}
@@ -276,33 +405,15 @@ function MapView() {
       </MapContainer>
 
       {activeMarker && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.4)',
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            background: 'white',
-            padding: 20,
-            borderRadius: 8,
-            width: '90%',
-            maxWidth: 400,
-          }}>
-            <h3>Write report for marker</h3>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '10px' }}>
+        <div className="report-modal-container">
+          <div className="report-modal">
+            <h3 className="modal-header">Write report for marker</h3>
+            <div className="emoji-selector">
               {emojis.map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => setSelectedEmoji(emoji)}
-                  style={{
-                    fontSize: '24px',
-                    backgroundColor: selectedEmoji === emoji ? '#e6f7ff' : '#f0f0f0',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    padding: '5px',
-                    cursor: 'pointer'
-                  }}
+                  className={`emoji-selector-button ${selectedEmoji === emoji ? 'selected' : ''}`}
                 >
                   {emoji}
                 </button>
@@ -311,15 +422,15 @@ function MapView() {
             
             <textarea
               rows={6}
-              style={{ width: '100%', boxSizing: 'border-box' }}
+              className="report-textarea"
               value={reportText}
               onChange={(e) => setReportText(e.target.value)}
               placeholder="Enter report details here..."
             />
-            <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-              <button onClick={handleSaveReport} style={{ padding: '8px 16px', flex: 1 }}>Save</button>
-              <button onClick={handleCloseModal} style={{ padding: '8px 16px', flex: 1 }}>Cancel</button>
-              <button onClick={handleDeleteMarker} style={{ padding: '8px 16px', flex: 1, backgroundColor: '#cc0000', color: 'white' }}>Delete</button>
+            <div className="modal-buttons">
+              <button onClick={handleSaveReport} className="modal-button save">Save</button>
+              <button onClick={handleCloseModal} className="modal-button cancel">Cancel</button>
+              <button onClick={handleDeleteMarker} className="modal-button delete">Delete</button>
             </div>
           </div>
         </div>
