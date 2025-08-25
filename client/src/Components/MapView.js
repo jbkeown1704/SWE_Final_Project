@@ -6,6 +6,15 @@ import L from 'leaflet';
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore";
 import { db } from '../firebase';
 
+// Define the pulsing keyframe animation directly in CSS
+const markerPulseStyle = `
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+`;
+
 // Custom red icon
 const redIcon = new L.Icon({
   iconUrl: require('../redmarker.png'),
@@ -50,10 +59,10 @@ function MapView() {
   const [markers, setMarkers] = useState([]);
   const [activeMarker, setActiveMarker] = useState(null);
   const [reportText, setReportText] = useState('');
-  // NEW: State to hold the selected emoji
   const [selectedEmoji, setSelectedEmoji] = useState('🚨');
-  // Emojis for the selector
   const emojis = ['🚨', '🔥', '⚠️', '💧', '🌪️', '🗺️', '🧑‍🚒'];
+  // NEW: State for the toast message
+  const [toastMessage, setToastMessage] = useState('');
 
   // Get central location name
   useEffect(() => {
@@ -92,7 +101,6 @@ function MapView() {
               lng: docSnap.data().lng,
             },
             report: docSnap.data().report || '',
-            // NEW: Read the emoji from the database
             reportEmoji: docSnap.data().reportEmoji || '',
             eventPassword: docSnap.data().eventPassword || null
           }));
@@ -108,7 +116,11 @@ function MapView() {
   // Add a marker in UI
   const handleAddMarker = (latlng) => {
     if (!eventPassword) {
-      alert("You must enter the correct event password before adding markers.");
+      // UPDATED: Replace alert with a toast message
+      setToastMessage("Please enter the correct event password to add markers.");
+      setTimeout(() => {
+        setToastMessage(""); // Hide toast after 3 seconds
+      }, 3000);
       return;
     }
     const newMarker = {
@@ -116,19 +128,31 @@ function MapView() {
       latlng,
       report: '',
       firestoreId: null,
-      reportEmoji: '🚨', // NEW: Set a default emoji for new markers
-      eventPassword
+      reportEmoji: '🚨',
+      eventPassword,
+      isNew: true // NEW: Add a flag to identify new markers for animation
     };
     setMarkers((prev) => [...prev, newMarker]);
     setActiveMarker(newMarker);
     setReportText('');
-    setSelectedEmoji('🚨'); // NEW: Reset emoji state for new marker
+    setSelectedEmoji('🚨');
   };
+
+  // NEW: useEffect to handle marker animation state
+  useEffect(() => {
+    if (markers.length > 0 && markers[markers.length - 1].isNew) {
+      const timer = setTimeout(() => {
+        setMarkers(prevMarkers =>
+          prevMarkers.map(m => m.isNew ? { ...m, isNew: false } : m)
+        );
+      }, 1500); // Animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [markers.length]);
 
   const handleMarkerClick = (marker) => {
     setActiveMarker(marker);
     setReportText(marker.report);
-    // NEW: Set the selected emoji to the one from the clicked marker
     setSelectedEmoji(marker.reportEmoji || '🚨');
   };
 
@@ -142,11 +166,10 @@ function MapView() {
           lat: activeMarker.latlng.lat,
           lng: activeMarker.latlng.lng,
           report: reportText,
-          reportEmoji: selectedEmoji, // NEW: Save the selected emoji
-          eventPassword, // tie to event
+          reportEmoji: selectedEmoji,
+          eventPassword,
           timestamp: new Date()
         });
-
         const firestoreId = docRef.id;
         setMarkers((prev) =>
           prev.map((m) =>
@@ -159,7 +182,7 @@ function MapView() {
       } else {
         await updateDoc(doc(db, "markers", activeMarker.firestoreId), {
           report: reportText,
-          reportEmoji: selectedEmoji, // NEW: Update the emoji too
+          reportEmoji: selectedEmoji,
         });
         setMarkers((prev) =>
           prev.map((m) =>
@@ -169,7 +192,7 @@ function MapView() {
       }
       setActiveMarker(null);
       setReportText('');
-      setSelectedEmoji('🚨'); // NEW: Reset emoji
+      setSelectedEmoji('🚨');
     } catch (error) {
       console.error("Error saving marker:", error);
     }
@@ -185,7 +208,7 @@ function MapView() {
       setMarkers((prev) => prev.filter((m) => m.id !== activeMarker.id));
       setActiveMarker(null);
       setReportText('');
-      setSelectedEmoji('🚨'); // NEW: Reset emoji
+      setSelectedEmoji('🚨');
     } catch (error) {
       console.error("Error deleting marker:", error);
     }
@@ -194,10 +217,9 @@ function MapView() {
   const handleCloseModal = () => {
     setActiveMarker(null);
     setReportText('');
-    setSelectedEmoji('🚨'); // NEW: Reset emoji
+    setSelectedEmoji('🚨');
   };
 
-  // NEW: Function to display emoji and report text in the tooltip
   const popupContent = (report, emoji) => {
     const text = report || 'New one';
     const truncatedText = text.length > 50 ? text.slice(0, 50) + '...' : text;
@@ -206,6 +228,24 @@ function MapView() {
 
   return (
     <>
+      <style>{markerPulseStyle}</style>
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#333',
+          color: 'white',
+          padding: '10px 20px',
+          borderRadius: '5px',
+          zIndex: 2000,
+          textAlign: 'center',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+        }}>
+          {toastMessage}
+        </div>
+      )}
       <MapContainer center={mapCenter} zoom={zoomLevel} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
@@ -226,9 +266,9 @@ function MapView() {
             position={marker.latlng}
             icon={redIcon}
             eventHandlers={{ click: () => handleMarkerClick(marker) }}
+            className={marker.isNew ? 'pulse-marker' : ''} // NEW: Conditionally apply animation class
           >
             <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-              {/* NEW: Pass both report text and emoji to the popup content */}
               {popupContent(marker.report, marker.reportEmoji)}
             </Tooltip>
           </Marker>
@@ -250,7 +290,6 @@ function MapView() {
             maxWidth: 400,
           }}>
             <h3>Write report for marker</h3>
-            {/* NEW: Emoji selector added here */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '10px' }}>
               {emojis.map((emoji) => (
                 <button
@@ -269,7 +308,7 @@ function MapView() {
                 </button>
               ))}
             </div>
-
+            
             <textarea
               rows={6}
               style={{ width: '100%', boxSizing: 'border-box' }}
