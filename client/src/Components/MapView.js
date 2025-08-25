@@ -16,6 +16,17 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+// Custom blue icon for the center marker
+const blueIcon = new L.Icon({
+  iconUrl: require('../SPES_Heart.png'),
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+  shadowSize: [41, 41],
+});
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -201,7 +212,7 @@ function MapView() {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
-        <Marker position={mapCenter}>
+        <Marker position={mapCenter} icon={blueIcon}>
           <Tooltip direction="top" offset={[0, -10]} opacity={1}>
             {locationName}
           </Tooltip>
@@ -258,7 +269,7 @@ function MapView() {
                 </button>
               ))}
             </div>
-            
+
             <textarea
               rows={6}
               style={{ width: '100%', boxSizing: 'border-box' }}
