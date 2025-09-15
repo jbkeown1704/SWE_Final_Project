@@ -7,7 +7,6 @@ import Signup from './Signup';
 import ForgotPassword from './ForgotPassword';
 import './App.css';
 import { MapProvider } from './MapContext';
-import "./i18n";
 
 function App() {
   return (
