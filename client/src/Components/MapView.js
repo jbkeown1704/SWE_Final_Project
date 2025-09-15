@@ -1,12 +1,26 @@
+// This component is the heart of the application. It handles all map-related
+// logic: displaying the map, fetching and displaying markers, and managing
+// user interactions like adding or editing reports.
+
+// I'm importing all the necessary React hooks and components from
+// `react-leaflet` to build the map interface.
 import React, { useContext, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, useMapEvents } from 'react-leaflet';
+// Don't forget to import the base Leaflet CSS for styling the map.
 import 'leaflet/dist/leaflet.css';
+// I'll use my custom `MapContext` to share global state like
+// the map center and the active event password.
 import { MapContext } from '../MapContext';
+// The core Leaflet library is needed to create custom marker icons.
 import L from 'leaflet';
+// And here are all the Firestore functions I need to manage data
+// in the database.
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore";
 import { db } from '../firebase';
 
-// Define the pulsing keyframe animation directly in CSS
+// I'm defining a simple CSS animation directly in a string.
+// This is a quick way to create a pulsing effect for new markers without
+// needing an external stylesheet.
 const markerPulseStyle = `
   @keyframes pulse {
     0% { transform: scale(1); }
@@ -15,7 +29,7 @@ const markerPulseStyle = `
   }
 `;
 
-// Custom red icon
+// I'm creating a custom red marker icon using a local image.
 const redIcon = new L.Icon({
   iconUrl: require('../redmarker.png'),
   iconSize: [35, 55],
@@ -25,7 +39,8 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-// Custom blue icon for the center marker
+// This is another custom icon, a blue one, which I'll use for the central
+// location marker on the map. It uses a different image.
 const blueIcon = new L.Icon({
   iconUrl: require('../SPES_Heart.png'),
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -36,6 +51,9 @@ const blueIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+// This is a crucial fix! Leaflet's default marker icons often fail to
+// load correctly in a Webpack/React environment. This code block
+// reassigns the default icon paths to a working set.
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -43,7 +61,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Click handler to add marker
+// I've separated the map click handler into its own component.
+// `useMapEvents` must be a direct child of `MapContainer`, so this is a
+// common pattern to handle map interactions.
 function AddMarker({ onAdd }) {
   useMapEvents({
     click(e) {
@@ -53,18 +73,24 @@ function AddMarker({ onAdd }) {
   return null;
 }
 
+// This is the main component function.
 function MapView() {
+  // Pulling shared state from the `MapContext`.
   const { mapCenter, zoomLevel, eventPassword } = useContext(MapContext);
+  
+  // State for the central location name, markers array, active marker for
+  // editing, and the report form inputs.
   const [locationName, setLocationName] = useState('Loading location...');
   const [markers, setMarkers] = useState([]);
   const [activeMarker, setActiveMarker] = useState(null);
   const [reportText, setReportText] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('🚨');
   const emojis = ['🚨', '🔥', '⚠️', '💧', '🌪️', '🗺️', '🧑‍🚒'];
-  // NEW: State for the toast message
+  // This state will manage a temporary pop-up message (a "toast").
   const [toastMessage, setToastMessage] = useState('');
 
-  // Get central location name
+  // This `useEffect` hook fetches the human-readable name of the central
+  // location using its coordinates and the OpenStreetMap Nominatim API.
   useEffect(() => {
     const [lat, lon] = mapCenter;
     const fetchLocation = async () => {
@@ -80,9 +106,10 @@ function MapView() {
       }
     };
     fetchLocation();
-  }, [mapCenter]);
+  }, [mapCenter]); // The effect runs whenever the map center changes.
 
-  // Load markers for current event password
+  // This `useEffect` is for loading markers from the Firestore database.
+  // It uses the `eventPassword` to filter for the correct set of markers.
   useEffect(() => {
     if (!eventPassword) {
       setMarkers([]);
@@ -92,6 +119,7 @@ function MapView() {
       try {
         const q = query(collection(db, "markers"), where("eventPassword", "==", eventPassword));
         const snapshot = await getDocs(q);
+        // Mapping Firestore documents to a format that my state can use.
         const loaded = snapshot.docs
           .map(docSnap => ({
             id: docSnap.id,
@@ -111,26 +139,28 @@ function MapView() {
       }
     };
     loadMarkers();
-  }, [eventPassword]);
+  }, [eventPassword]); // This hook re-runs whenever `eventPassword` changes.
 
-  // Add a marker in UI
+  // This function adds a new marker to the local state when the user
+  // clicks on the map. It also checks for the event password.
   const handleAddMarker = (latlng) => {
     if (!eventPassword) {
-      // UPDATED: Replace alert with a toast message
       setToastMessage("Please enter the correct event password to add markers.");
       setTimeout(() => {
-        setToastMessage(""); // Hide toast after 3 seconds
+        setToastMessage("");
       }, 3000);
       return;
     }
     const newMarker = {
+      // I'll use a temporary ID until I get the real one from Firestore.
       id: Date.now().toString(),
       latlng,
       report: '',
       firestoreId: null,
       reportEmoji: '🚨',
       eventPassword,
-      isNew: true // NEW: Add a flag to identify new markers for animation
+      // The `isNew` flag will trigger the pulsing animation.
+      isNew: true
     };
     setMarkers((prev) => [...prev, newMarker]);
     setActiveMarker(newMarker);
@@ -138,29 +168,32 @@ function MapView() {
     setSelectedEmoji('🚨');
   };
 
-  // NEW: useEffect to handle marker animation state
+  // This `useEffect` manages the animation for new markers. After a short
+  // delay, it removes the `isNew` flag to stop the pulsing.
   useEffect(() => {
     if (markers.length > 0 && markers[markers.length - 1].isNew) {
       const timer = setTimeout(() => {
         setMarkers(prevMarkers =>
           prevMarkers.map(m => m.isNew ? { ...m, isNew: false } : m)
         );
-      }, 1500); // Animation duration
-      return () => clearTimeout(timer);
+      }, 1500);
+      return () => clearTimeout(timer); // Clean up the timer.
     }
   }, [markers.length]);
 
+  // Sets the clicked marker as the active one for editing.
   const handleMarkerClick = (marker) => {
     setActiveMarker(marker);
     setReportText(marker.report);
     setSelectedEmoji(marker.reportEmoji || '🚨');
   };
 
-  // Save report to Firestore
+  // Handles saving a new or updated report to Firestore.
   const handleSaveReport = async () => {
     if (!activeMarker || !eventPassword) return;
 
     try {
+      // If the marker doesn't have a `firestoreId`, it's a new one.
       if (!activeMarker.firestoreId) {
         const docRef = await addDoc(collection(db, "markers"), {
           lat: activeMarker.latlng.lat,
@@ -171,6 +204,7 @@ function MapView() {
           timestamp: new Date()
         });
         const firestoreId = docRef.id;
+        // Update the local state with the new Firestore ID.
         setMarkers((prev) =>
           prev.map((m) =>
             m.id === activeMarker.id ? { ...m, report: reportText, reportEmoji: selectedEmoji, firestoreId } : m
@@ -180,16 +214,19 @@ function MapView() {
           prev ? { ...prev, firestoreId } : null
         );
       } else {
+        // If it has an ID, just update the existing document.
         await updateDoc(doc(db, "markers", activeMarker.firestoreId), {
           report: reportText,
           reportEmoji: selectedEmoji,
         });
+        // Update the local state.
         setMarkers((prev) =>
           prev.map((m) =>
             m.id === activeMarker.id ? { ...m, report: reportText, reportEmoji: selectedEmoji } : m
           )
         );
       }
+      // Close the modal and reset form state.
       setActiveMarker(null);
       setReportText('');
       setSelectedEmoji('🚨');
@@ -198,7 +235,7 @@ function MapView() {
     }
   };
 
-  // Delete marker
+  // Deletes a marker from both the local state and Firestore.
   const handleDeleteMarker = async () => {
     if (!activeMarker) return;
     try {
@@ -214,12 +251,14 @@ function MapView() {
     }
   };
 
+  // Function to close the report modal.
   const handleCloseModal = () => {
     setActiveMarker(null);
     setReportText('');
     setSelectedEmoji('🚨');
   };
 
+  // Helper function to format the content for the marker tooltip.
   const popupContent = (report, emoji) => {
     const text = report || 'New one';
     const truncatedText = text.length > 50 ? text.slice(0, 50) + '...' : text;
@@ -227,8 +266,10 @@ function MapView() {
   };
 
   return (
+    // React Fragment to hold multiple elements at the top level.
     <>
       <style>{markerPulseStyle}</style>
+      {/* This section renders the "toast" message if it's not empty. */}
       {toastMessage && (
         <div style={{
           position: 'fixed',
@@ -246,27 +287,38 @@ function MapView() {
           {toastMessage}
         </div>
       )}
+      {/* The main map container from `react-leaflet`. */}
       <MapContainer center={mapCenter} zoom={zoomLevel} style={{ height: '100%', width: '100%' }}>
+        {/* This is the base map layer, using a CARTO style. */}
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
+        
 
+[Image of map of a street]
+
+
+        {/* The central location marker, using the custom blue icon. */}
         <Marker position={mapCenter} icon={blueIcon}>
           <Tooltip direction="top" offset={[0, -10]} opacity={1}>
             {locationName}
           </Tooltip>
         </Marker>
 
+        {/* The component that handles the click-to-add-marker functionality. */}
         <AddMarker onAdd={handleAddMarker} />
 
+        {/* I'm mapping over the `markers` array to render a `Marker`
+            component for each one on the map. */}
         {markers.map(marker => (
           <Marker
             key={marker.id}
             position={marker.latlng}
             icon={redIcon}
             eventHandlers={{ click: () => handleMarkerClick(marker) }}
-            className={marker.isNew ? 'pulse-marker' : ''} // NEW: Conditionally apply animation class
+            // Conditionally applies the animation class if the marker is new.
+            className={marker.isNew ? 'pulse-marker' : ''}
           >
             <Tooltip direction="top" offset={[0, -10]} opacity={1}>
               {popupContent(marker.report, marker.reportEmoji)}
@@ -275,6 +327,8 @@ function MapView() {
         ))}
       </MapContainer>
 
+      {/* This is the modal for creating or editing reports. It only appears
+          if `activeMarker` is set. */}
       {activeMarker && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -290,6 +344,7 @@ function MapView() {
             maxWidth: 400,
           }}>
             <h3>Write report for marker</h3>
+            {/* The emoji selection buttons. */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '10px' }}>
               {emojis.map((emoji) => (
                 <button
@@ -316,6 +371,7 @@ function MapView() {
               onChange={(e) => setReportText(e.target.value)}
               placeholder="Enter report details here..."
             />
+            {/* The action buttons for saving, canceling, or deleting. */}
             <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
               <button onClick={handleSaveReport} style={{ padding: '8px 16px', flex: 1 }}>Save</button>
               <button onClick={handleCloseModal} style={{ padding: '8px 16px', flex: 1 }}>Cancel</button>
