@@ -1,4 +1,3 @@
-
 /* this section below handles all the CSS for the login page, i shuld really try and combine these and keep them together */
 body {
   margin: 0;
@@ -125,6 +124,14 @@ button:hover {
   z-index: 1000;
 }
 
+.banner-buttons {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 1rem 0; /* Adds spacing above and below the buttons */
+}
+
+
 .dashboard-wrapper {
   display: flex;
   flex-direction: column;
@@ -175,12 +182,11 @@ button:hover {
   background-color: #0066cc;
 }
 
-.logout-bubble {
-  background-color: #cc0000;
+/* Common styling for both bubbles */
+.logout-bubble, .tutorial-bubble {
   border-radius: 20px;
   padding: 6px 14px;
   display: inline-block;
-  margin: 1rem auto;
   color: white;
   font-weight: bold;
   font-size: 0.85rem;
@@ -189,12 +195,27 @@ button:hover {
   transition: background-color 0.3s ease;
 }
 
+/* Individual colors for each bubble */
+.logout-bubble {
+  background-color: #cc0000;
+}
+.tutorial-bubble {
+  background-color: green;
+}
+
+
 .logout-bubble:hover {
   background-color: #ff3333;
   cursor: pointer;
 }
 
-.logout-bubble button {
+.tutorial-bubble:hover {
+  background-color: darkgreen;
+  cursor: pointer;
+}
+
+
+.logout-bubble button, .tutorial-bubble button {
   all: unset;
   color: inherit;
   font-size: inherit;
@@ -234,6 +255,8 @@ button:hover {
   width: 90%;
   max-width: 400px;
   text-align: center;
+  max-height: 80vh; /* Set a maximum height relative to the viewport */
+  overflow-y: auto; /* Add a vertical scrollbar if content overflows */
 }
 
 .modal-box h3 {
