@@ -1,37 +1,59 @@
+// Okay, let's build the bottom banner component. It's a simple part of the UI,
+// but it needs to handle a couple of key things: logging out and showing a tutorial.
+
+// I'll need `useState` to manage the state of the tutorial modal, and `useNavigate`
+// to handle the logout button's click.
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// This is the component for the bottom banner.
 function BottomBanner() {
+  // Initializing my navigation hook.
   const navigate = useNavigate();
+  // A state variable to control the visibility of the tutorial modal. It's hidden by default.
   const [showTutorial, setShowTutorial] = useState(false);
 
+  // This function is called when the user clicks the "Tutorial" button.
+  // It simply flips the state to `true` to show the modal.
   const handleTutorialClick = () => {
     setShowTutorial(true);
   };
 
+  // This function is called when the user clicks the "Close" button inside the modal.
+  // It sets the state back to `false` to hide it.
   const handleCloseTutorial = () => {
     setShowTutorial(false);
   };
 
+  // Here's the UI for the banner. I'm using a React Fragment (`<>...</>`)
+  // because I need to return more than one top-level element (the banner and the modal).
   return (
     <>
+      {/* This is the main banner container. */}
       <div className="bottom-banner">
         <div className="banner-buttons">
+          {/* A small bubble for the logout button.
+              When clicked, it uses `Maps('/')` to take the user back to the login page.
+              I should probably add Firebase `signOut()` here later. 🤔*/}
           <div className="logout-bubble">
             <button onClick={() => navigate('/')}>
               Logout
             </button>
           </div>
 
+          {/* Another bubble for the tutorial button. */}
           <div className="tutorial-bubble">
             <button onClick={handleTutorialClick}>
               Tutorial
             </button>
           </div>
         </div>
+        {/* Just a cheeky copyright notice. */}
         <p>© 2025 SPES Project — All Rights Reserved tee hee</p>
       </div>
 
+      {/* This is the tutorial modal. It's a great example of conditional rendering.
+          It will only show up on the page if `showTutorial` is `true`. */}
       {showTutorial && (
         <div className="modal-overlay">
           <div className="modal-box">
@@ -63,6 +85,7 @@ function BottomBanner() {
             <p>
               Enjoy exploring and stay safe!
             </p>
+            {/* The button to close the tutorial. */}
             <button onClick={handleCloseTutorial}>Close</button>
           </div>
         </div>
@@ -71,4 +94,5 @@ function BottomBanner() {
   );
 }
 
+// Exporting the component so it can be used on other pages.
 export default BottomBanner;
