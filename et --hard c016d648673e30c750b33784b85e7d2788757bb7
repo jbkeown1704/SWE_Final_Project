@@ -1,0 +1,227 @@
+[33mcommit 826c0faa9da8321a1d9b6345419b9184a69d810a[m[33m ([m[1;36mHEAD[m[33m)[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Mon Sep 15 19:28:25 2025 +0100
+
+    clearing
+
+[33mcommit 412437cbf3ac4805e952fd337a248b3f4fd28498[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Mon Sep 15 19:25:03 2025 +0100
+
+     hope this works
+
+[33mcommit c016d648673e30c750b33784b85e7d2788757bb7[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Mon Aug 25 13:22:55 2025 +0100
+
+    Some small quality of life fixes for the alerts on the map
+
+[33mcommit b2b9fb850a1c02a224a48b64ac97ed26e2200865[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Mon Aug 25 12:35:06 2025 +0100
+
+    Some basic marker changes to make things a bit prettier
+
+[33mcommit 4dcd5b43f11f5b8ece543791e28ce793795e6f1d[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Mon Aug 25 12:09:33 2025 +0100
+
+    Attempt at language translation
+
+[33mcommit 8819863b7b4d94e076003ce3f7a638530e7434e8[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Aug 12 14:53:32 2025 +0100
+
+    Reports section working and emoji function working swimmingly!
+
+[33mcommit 60b2e9cdc96237a99e73e6399aa3be3b4406c6ca[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Aug 12 13:51:48 2025 +0100
+
+    Basic reports features working
+
+[33mcommit 8816a9a3318105ba43de7044913142f0e51548f2[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Aug 12 13:39:56 2025 +0100
+
+    Updated the CSS to save the additional button
+
+[33mcommit a560047e7b4c1ff184345938d8379e64e4a1f084[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Aug 12 13:33:21 2025 +0100
+
+    Made the default location for the map on boot is now the city centre of belfast
+
+[33mcommit 21218fe467365004fd1ff05c69a7184f3ea96784[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Aug 12 13:28:26 2025 +0100
+
+    Successful password location locking sorted
+
+[33mcommit 5eb4248623b26e6302ed534e5f72783b27491678[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Aug 12 12:34:49 2025 +0100
+
+    Event creation password locator
+
+[33mcommit 371bb97516e5517117769b243691da6609bd500f[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sun Aug 10 21:20:28 2025 +0100
+
+    Password reseting now works and sends an email to your email address
+
+[33mcommit 3af98694f9ed447774cf53c3c012ca9fc1d2e63f[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sun Aug 10 21:15:28 2025 +0100
+
+    Added in account creation
+
+[33mcommit 9613cc05da88f5442ccfacd26cbbbcebf6219d85[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Thu Jul 31 13:48:47 2025 +0100
+
+    Map Markers saving to the Database!
+
+[33mcommit 95c5d653d58f482238f523d9b0da661cda79be37[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sun Jul 27 23:37:00 2025 +0100
+
+    An attempt to link the firebase
+
+[33mcommit 49946eb82da40a8f326d0046fc3b63e6946b8de5[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sun Jul 27 18:24:29 2025 +0100
+
+    Map marker hover note
+
+[33mcommit 63412c8abce2f8f7a32a600c522867b0df120009[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sun Jul 27 15:55:14 2025 +0100
+
+    Marker system
+
+[33mcommit 72bd09d06865d3abf443a2e7878aae0fcde0a6f7[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sun Jul 27 15:36:54 2025 +0100
+
+    Map marker added so users can begin reporting
+
+[33mcommit 10748ef8b081a1727b8ad8eb8c4459084616a957[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sun Jul 27 15:22:48 2025 +0100
+
+    Excellent, map context bug removed
+
+[33mcommit 401a1657ace537bf71e4af79a291715a935ec522[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Jul 22 14:38:41 2025 +0100
+
+    English translation on the mini map and the full map
+
+[33mcommit fbfa2de3af0c1e56cd67a0695b0125fb81434a29[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Jul 22 11:24:08 2025 +0100
+
+    mapcontext built in
+
+[33mcommit 43ccb2225577cd610a51d8f2c016ac8ecc69ddb2[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sun Jul 20 16:18:17 2025 +0100
+
+    Full map view temp changes
+
+[33mcommit 2b43560312871a364a4445f1d73f6bacdced305e[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Thu Jul 17 14:56:45 2025 +0100
+
+    Password feature for disasters built in
+
+[33mcommit 53d636d2bba2848a4e86c5f4c7c74c509efb13a3[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Thu Jul 17 14:42:19 2025 +0100
+
+    Dashboard event plugin fixed
+
+[33mcommit 9fe0fe0e6e39640025ec80ccda653e3ceb1fdec9[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Jul 15 14:59:21 2025 +0100
+
+    Fixed some UI issues and updated the login logo
+
+[33mcommit c49a34a8bafd29dc5ac808c57de80de32d33b912[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Tue Jul 15 14:53:51 2025 +0100
+
+    Local time scanner added with the feature to see your local time and the currenttime
+
+[33mcommit 85f305b47d1fa1300b41fec3653370920fadf2fe[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sat Jul 12 12:12:00 2025 +0100
+
+    Logout button has been fixed!
+
+[33mcommit 8185d530c652ecb3f328ff4fa53518ea7e94c2b3[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Sat Jul 12 12:06:57 2025 +0100
+
+    Current time time zone selector
+
+[33mcommit 204ef6452f176521744a2e466a9fd7639b8b7c41[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Thu Jul 10 20:16:48 2025 +0100
+
+    Logout button partially working
+
+[33mcommit 063ca5aa89401511d7f3e8bf56d16552e18dd787[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Thu Jul 10 20:06:37 2025 +0100
+
+    Basic mapping added and some more dashboard design
+
+[33mcommit f051b41789a7a5be8ac0b8c539c0c05067834020[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Thu Jul 10 19:43:52 2025 +0100
+
+    Dashboard trial and error
+
+[33mcommit 648d1d3be7acab7e5e74e92e229f85899b5d9168[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Wed Jul 9 21:26:44 2025 +0100
+
+    Adding in some smalltext box planning for the layout of the dashboard
+
+[33mcommit 4cd45818039faece479dfbab57e51ebd97d2a29f[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Wed Jul 9 21:18:49 2025 +0100
+
+    Dashboard trying to get the React to work
+
+[33mcommit 524ac2fb5e7a737bb940b796beff384f9dce65a2[m
+Author: James Keown <jkeown07@qub.ac.uk>
+Date:   Wed Jul 9 16:15:52 2025 +0100
+
+    Dashboard begins
+
+[33mcommit 6747a7567feabbaefc9dd52b68c50efd314411df[m
+Author: James Keown <jbkeown@gmail.com>
+Date:   Thu Jul 3 17:16:04 2025 +0100
+
+    Login and Firebase connection added
+
+[33mcommit ae6538f70e3729f025d6e545afeb1ad070cdb502[m
+Author: James Keown <jbkeown@gmail.com>
+Date:   Wed Jul 2 14:28:40 2025 +0100
+
+    Basic package installation process
+
+[33mcommit 3f4c5ce58131469ae168207888e737362775f989[m
+Author: James Keown <jbkeown@gmail.com>
+Date:   Mon Jun 23 12:01:50 2025 +0100
+
+    Add .gitignore
+
+[33mcommit 70b7564d71753193800f035682aab9f8f71417f7[m
+Author: James Keown <jbkeown@gmail.com>
+Date:   Mon Jun 23 11:46:51 2025 +0100
+
+    Initial commit with README
