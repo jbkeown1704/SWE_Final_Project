@@ -350,14 +350,7 @@ function MapView() {
                 <button
                   key={emoji}
                   onClick={() => setSelectedEmoji(emoji)}
-                  style={{
-                    fontSize: '24px',
-                    backgroundColor: selectedEmoji === emoji ? '#e6f7ff' : '#f0f0f0',
-                    border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    padding: '5px',
-                    cursor: 'pointer'
-                  }}
+                  className={`emoji-selector-button ${selectedEmoji === emoji ? 'selected' : ''}`}
                 >
                   {emoji}
                 </button>
@@ -366,7 +359,7 @@ function MapView() {
             
             <textarea
               rows={6}
-              style={{ width: '100%', boxSizing: 'border-box' }}
+              className="report-textarea"
               value={reportText}
               onChange={(e) => setReportText(e.target.value)}
               placeholder="Enter report details here..."

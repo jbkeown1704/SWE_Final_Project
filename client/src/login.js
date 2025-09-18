@@ -28,6 +28,7 @@ function Login() {
       setError('Please enter both email and password');
       return;
     }
+//Smiles and songs
 
     // Now for the real part: trying to log the user in with Firebase.
     // I'll use a `try...catch` block to handle both success and failure.
