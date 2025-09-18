@@ -2,7 +2,6 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  /* Use a proper path and fix the escape characters for background image */
   background: url('./Login (1).png') no-repeat center center fixed;
   background-size: cover;
   min-height: 100vh;
