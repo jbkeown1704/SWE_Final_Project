@@ -16,6 +16,7 @@ function Login() {
       setError('Please enter both email and password');
       return;
     }
+//Smiles and songs
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
